@@ -126,3 +126,7 @@ Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
 | Phone can't open the page | Make sure the phone is on the same WiFi and Windows Firewall allows port 3000. |
 | Remote tab shows "not found" | Click Install to download Cloudflare — or install it manually and restart BuzzCast. |
 | Remote QR never appears | Check that port 3000 is not blocked by a firewall or antivirus. |
+
+---
+
+Built with [Bun](https://bun.sh).
