@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BuzzCast</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="lang.js"></script>
+</head>
+<body class="controller">
+  <div class="topbar">
+    <span id="label">?</span>
+    <span id="conn" class="conn">●</span>
+    <button id="change-name" class="topbar-btn" data-i18n="change_name_btn">Change name</button>
+    <a href="index.html" class="topbar-btn" data-i18n="exit_btn">Exit</a>
+  </div>
+
+  <div class="buzzer-wrap">
+    <button id="buzzer" class="buzzer" data-button="buzzer">
+      <img src="buzz-logo-black.svg" class="buzzer-logo" alt="" />
+    </button>
+  </div>
+
+  <div class="colors">
+    <button class="color blue"   data-button="blue"></button>
+    <button class="color orange" data-button="orange"></button>
+    <button class="color green"  data-button="green"></button>
+    <button class="color yellow" data-button="yellow"></button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

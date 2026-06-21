@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuzzCast — Instructions</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="lang.js"></script>
+</head>
+<body class="instructions">
+
+  <div class="instructions-header">
+    <a href="index.html" class="back-arrow">←</a>
+    <img src="buzz-logo.png" alt="BuzzCast" />
+    <span class="lang-switcher">
+      <button class="flag-btn" data-lang="en" onclick="setLang('en')" title="English">🇬🇧</button>
+      <button class="flag-btn" data-lang="pt" onclick="setLang('pt')" title="Português">🇵🇹</button>
+    </span>
+  </div>
+
+  <!-- English -->
+  <div class="lang-content lang-en">
+    <div class="notice red">
+      ⚠️ This app is only compatible with <strong>PCSX2</strong>.
+    </div>
+    <div class="notice red">
+      ⚠️ <strong>Buzz!: The Music Quiz</strong> (the first game in the franchise) does not support 8 players — it only supports 4.
+    </div>
+
+    <h2>1. Players join</h2>
+    <ol>
+      <li>Open your phone camera and scan the QR code, or type the address in your browser.</li>
+      <li>Pick a free slot (Player 1–8).</li>
+      <li>Enter your name when asked.</li>
+      <li>The controller screen appears — you're ready to play!</li>
+    </ol>
+
+    <h2>2. Configure PCSX2 — 4 players (USB 1)</h2>
+    <ol>
+      <li>Open PCSX2 and go to <strong>Settings → Controllers</strong>.</li>
+      <li>Click <strong>USB Port 1</strong>.</li>
+      <li>In the dropdown, choose <strong>Buzz! Controller</strong>.</li>
+      <li>Map each player's buttons (1–4) using the table below.</li>
+    </ol>
+
+    <h2>3. For 8 players — add USB 2</h2>
+    <ol>
+      <li>Still in <strong>Settings → Controllers</strong>, click <strong>USB Port 2</strong>.</li>
+      <li>Choose <strong>Buzz! Controller</strong> again in the dropdown.</li>
+      <li>Map players 5–8 using the keys in the table.</li>
+    </ol>
+
+    <h2>4. Play</h2>
+    <ol>
+      <li>Start the game in PCSX2.</li>
+      <li>Keep the <strong>PCSX2 window in focus</strong> — required to receive button presses.</li>
+      <li>Press buttons on your phone and have fun!</li>
+    </ol>
+
+    <h2>Key map</h2>
+    <table class="keymap-table">
+      <thead>
+        <tr>
+          <th>Player</th><th>Buzz (●)</th><th>Blue</th><th>Orange</th><th>Green</th><th>Yellow</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Q</td><td>W</td><td>E</td><td>R</td><td>T</td></tr>
+        <tr><td>2</td><td>A</td><td>S</td><td>D</td><td>F</td><td>G</td></tr>
+        <tr><td>3</td><td>Z</td><td>X</td><td>C</td><td>V</td><td>B</td></tr>
+        <tr><td>4</td><td>Y</td><td>U</td><td>I</td><td>O</td><td>P</td></tr>
+        <tr><td>5</td><td>H</td><td>J</td><td>K</td><td>L</td><td>N</td></tr>
+        <tr><td>6</td><td>Num1</td><td>Num2</td><td>Num3</td><td>Num4</td><td>Num5</td></tr>
+        <tr><td>7</td><td>Num6</td><td>Num7</td><td>Num8</td><td>Num9</td><td>Num0</td></tr>
+        <tr><td>8</td><td>M</td><td>F</td><td>,</td><td>.</td><td>/</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px; opacity:0.5; font-size:0.8rem;">Num1–Num0 = numpad (numeric keypad).</p>
+  </div>
+
+  <!-- Português -->
+  <div class="lang-content lang-pt">
+    <div class="notice red">
+      ⚠️ Esta app é apenas compatível com o <strong>PCSX2</strong>.
+    </div>
+    <div class="notice red">
+      ⚠️ <strong>Buzz!: The Music Quiz</strong> (o primeiro jogo da franquia) não é compatível com 8 jogadores — suporta apenas 4.
+    </div>
+
+    <h2>1. Os jogadores entram</h2>
+    <ol>
+      <li>Aponta a câmara ao QR code ou abre o endereço no browser.</li>
+      <li>Escolhe um lugar livre (Jogador 1–8).</li>
+      <li>Escreve o teu nome quando solicitado.</li>
+      <li>O ecrã do comando aparece — já está pronto a usar!</li>
+    </ol>
+
+    <h2>2. Configurar o PCSX2 — 4 jogadores (USB 1)</h2>
+    <ol>
+      <li>Abre o PCSX2 e vai a <strong>Settings → Controllers</strong>.</li>
+      <li>Clica em <strong>USB Port 1</strong>.</li>
+      <li>No menu dropdown escolhe <strong>Buzz! Controller</strong>.</li>
+      <li>Mapeia os botões de cada jogador (1–4) conforme a tabela abaixo.</li>
+    </ol>
+
+    <h2>3. Para 8 jogadores — adiciona USB 2</h2>
+    <ol>
+      <li>Ainda em <strong>Settings → Controllers</strong>, clica em <strong>USB Port 2</strong>.</li>
+      <li>Escolhe novamente <strong>Buzz! Controller</strong> no dropdown.</li>
+      <li>Mapeia os jogadores 5–8 com as teclas da tabela.</li>
+    </ol>
+
+    <h2>4. Jogar</h2>
+    <ol>
+      <li>Inicia o jogo no PCSX2.</li>
+      <li>Mantém a <strong>janela do PCSX2 em foco</strong> — é necessário para receber os botões.</li>
+      <li>Carrega nos botões no telemóvel e divirte-te!</li>
+    </ol>
+
+    <h2>Tabela de teclas</h2>
+    <table class="keymap-table">
+      <thead>
+        <tr>
+          <th>Jogador</th><th>Buzz (●)</th><th>Azul</th><th>Laranja</th><th>Verde</th><th>Amarelo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Q</td><td>W</td><td>E</td><td>R</td><td>T</td></tr>
+        <tr><td>2</td><td>A</td><td>S</td><td>D</td><td>F</td><td>G</td></tr>
+        <tr><td>3</td><td>Z</td><td>X</td><td>C</td><td>V</td><td>B</td></tr>
+        <tr><td>4</td><td>Y</td><td>U</td><td>I</td><td>O</td><td>P</td></tr>
+        <tr><td>5</td><td>H</td><td>J</td><td>K</td><td>L</td><td>N</td></tr>
+        <tr><td>6</td><td>Num1</td><td>Num2</td><td>Num3</td><td>Num4</td><td>Num5</td></tr>
+        <tr><td>7</td><td>Num6</td><td>Num7</td><td>Num8</td><td>Num9</td><td>Num0</td></tr>
+        <tr><td>8</td><td>M</td><td>F</td><td>,</td><td>.</td><td>/</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px; opacity:0.5; font-size:0.8rem;">Num1–Num0 = teclado numérico (numpad).</p>
+  </div>
+
+  <script>
+    applyI18n();
+    const lang = getLang();
+    document.querySelectorAll(".lang-content").forEach(el => {
+      el.style.display = el.classList.contains("lang-" + lang) ? "block" : "none";
+    });
+  </script>
+</body>
+</html>

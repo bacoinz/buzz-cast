@@ -1,0 +1,20 @@
+{
+  "name": "buzz-controller",
+  "version": "1.0.0",
+  "description": "Comandos Buzz no telemovel via webapp local para PCSX2 (emulacao de teclado)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.0",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "rcedit": "^5.0.2"
+  }
+}

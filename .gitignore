@@ -1,0 +1,10 @@
+node_modules/
+BuzzCast.exe
+cloudflared.exe
+buzz-logo.ico
+_bundle.js
+_embed-icon.ps1
+*.tmp
+.bun-build
+*.bun-build
+.claude/

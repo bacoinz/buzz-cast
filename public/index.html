@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BuzzCast</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="lang.js"></script>
+</head>
+<body class="lobby">
+  <img src="buzz-logo.png" class="buzz-logo" alt="BuzzCast" />
+  <p class="subtitle" data-i18n="subtitle">Choose your controller</p>
+  <div id="slots" class="slot-grid"></div>
+  <p id="status" class="status"></p>
+  <a href="instructions.html" class="instructions-btn" data-i18n="instructions_btn">Instructions</a>
+  <p class="footer">
+    <a href="https://github.com/bacoinz/buzz-cast" target="_blank">GitHub</a>
+    <span class="footer-sep">·</span>
+    <span class="lang-switcher">
+      <button class="flag-btn" data-lang="en" onclick="setLang('en')" title="English">🇬🇧</button>
+      <button class="flag-btn" data-lang="pt" onclick="setLang('pt')" title="Português">🇵🇹</button>
+    </span>
+  </p>
+
+  <script>
+    applyI18n();
+
+    const PLAYERS = 8;
+    const grid = document.getElementById("slots");
+    const status = document.getElementById("status");
+    status.textContent = t("status_connecting");
+    let taken = {};
+    let playerNames = {};
+
+    const buttons = [];
+    for (let p = 1; p <= PLAYERS; p++) {
+      const b = document.createElement("button");
+      b.className = "slot-btn";
+      b.dataset.player = p;
+      b.addEventListener("click", () => choose(p));
+      grid.appendChild(b);
+      buttons.push(b);
+    }
+
+    function render() {
+      buttons.forEach((b) => {
+        const p = Number(b.dataset.player);
+        const isTaken = !!taken[p];
+        const name = playerNames[p];
+        b.classList.toggle("taken", isTaken);
+        b.disabled = isTaken;
+        if (isTaken) {
+          b.textContent = t("player_taken", p, name);
+        } else {
+          b.textContent = t("player_slot", p);
+        }
+      });
+    }
+
+    function choose(p) {
+      if (taken[p]) return;
+      location.href = "controller.html?player=" + p;
+    }
+
+    let ws;
+    function connect() {
+      const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+      ws = new WebSocket(wsProto + "//" + location.host);
+      ws.onopen = () => { status.textContent = t("status_ready"); };
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === "slots") {
+          taken = msg.taken;
+          playerNames = msg.names || {};
+          render();
+        }
+      };
+      ws.onclose = () => { status.textContent = t("status_lost"); setTimeout(connect, 1000); };
+    }
+    connect();
+  </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+/* style.css — UI do BuzzController. Mobile-first, sem scroll, estilo Buzz. */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  touch-action: none;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(circle at 50% 0%, #2a1147 0%, #120821 60%, #0a0413 100%);
+  color: #fff;
+}
+
+/* ─── Lobby ──────────────────────────────────────────── */
+body.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 5vw 56px;
+  text-align: center;
+  gap: 0;
+  position: relative;
+}
+
+.buzz-logo {
+  width: min(160px, 42vw);
+  height: auto;
+  margin-bottom: 14px;
+}
+
+.subtitle {
+  margin: 0 0 28px;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.slot-btn {
+  padding: 16px 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #6a2cc9, #4a1a99);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.15s ease;
+  width: 100%;
+}
+
+.slot-btn:active {
+  transform: scale(0.97);
+  filter: brightness(1.15);
+}
+
+.slot-btn.taken {
+  background: #2c2440;
+  color: #8b80a8;
+  border-color: transparent;
+  cursor: not-allowed;
+  font-weight: 600;
+}
+
+.status {
+  margin: 24px 0 14px;
+  opacity: 0.65;
+  font-size: 0.85rem;
+}
+
+.instructions-btn {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  font-size: 0.92rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding-bottom: 2px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  opacity: 0.35;
+  font-size: 0.78rem;
+}
+
+.footer a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  opacity: 0.7;
+}
+
+.footer-sep {
+  margin: 0 4px;
+  opacity: 0.4;
+}
+
+.lang-switcher {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.flag-btn {
+  background: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 2px 4px;
+  border-radius: 6px;
+  opacity: 0.4;
+  transition: opacity 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.flag-btn:hover { opacity: 0.75; }
+.flag-btn.active { opacity: 1; border-color: rgba(255,255,255,0.3); }
+
+/* ─── Controlador ────────────────────────────────────── */
+body.controller {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 10px 5vw 14px;
+  gap: 14px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 40px;
+  width: 90vw;
+}
+
+.topbar #label {
+  font-size: 1rem;
+  font-weight: 700;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conn {
+  color: #ff5555;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.conn.on {
+  color: #3ddc6d;
+}
+
+.topbar-btn {
+  flex-shrink: 0;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+/* ─── Buzzer: círculo 100% width ─────────────────────── */
+.buzzer-wrap {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.buzzer {
+  width: min(78vw, 46vh);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 50% 35%, #ff3b3b, #c1121f 65%, #8e0d18 100%);
+  box-shadow: 0 8px 0 #6e0a12, 0 12px 22px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.buzzer.active {
+  transform: translateY(7px);
+  box-shadow: 0 1px 0 #6e0a12, 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* SVG emboss: preto com opacidade baixa sobre o vermelho = vermelho escuro */
+.buzzer-logo {
+  width: 38%;
+  max-height: 38%;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0.26;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.07));
+}
+
+/* ─── 4 botões de cor em coluna ──────────────────────── */
+.colors {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 3;
+  min-height: 0;
+  width: min(78vw, 46vh);
+}
+
+.color {
+  flex: 1;
+  min-height: 0;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.05s ease, filter 0.05s ease;
+}
+
+.color.active {
+  filter: brightness(1.15);
+}
+
+.color.blue {
+  background: radial-gradient(ellipse at 50% 30%, #5bbfff, #1976d2 65%, #0d47a1 100%);
+  box-shadow: 0 4px 0 #083a8a, 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+.color.blue.active   { transform: translateY(3px); box-shadow: 0 1px 0 #083a8a, 0 2px 5px rgba(0,0,0,0.3); }
+
+.color.orange {
+  background: radial-gradient(ellipse at 50% 30%, #ffb84d, #e07b00 65%, #b05e00 100%);
+  box-shadow: 0 4px 0 #8a4700, 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+.color.orange.active { transform: translateY(3px); box-shadow: 0 1px 0 #8a4700, 0 2px 5px rgba(0,0,0,0.3); }
+
+.color.green {
+  background: radial-gradient(ellipse at 50% 30%, #5de86a, #22a835 65%, #166b22 100%);
+  box-shadow: 0 4px 0 #0e4d18, 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+.color.green.active  { transform: translateY(3px); box-shadow: 0 1px 0 #0e4d18, 0 2px 5px rgba(0,0,0,0.3); }
+
+.color.yellow {
+  background: radial-gradient(ellipse at 50% 30%, #ffe866, #e6b800 65%, #b38e00 100%);
+  box-shadow: 0 4px 0 #8a6d00, 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+.color.yellow.active { transform: translateY(3px); box-shadow: 0 1px 0 #8a6d00, 0 2px 5px rgba(0,0,0,0.3); }
+
+/* ─── Instruções ─────────────────────────────────────── */
+body.instructions {
+  overflow-y: auto;
+  padding: 24px 20px 40px;
+  touch-action: pan-y;
+}
+
+.instructions-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.instructions-header .lang-switcher {
+  margin-left: auto;
+}
+
+.instructions-header img {
+  width: min(140px, 38vw);
+  height: auto;
+}
+
+.back-arrow {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+body.instructions h2 {
+  font-size: 1.15rem;
+  color: #ffd23f;
+  margin: 22px 0 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+body.instructions ol, body.instructions ul {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.75;
+  opacity: 0.9;
+}
+
+body.instructions li { margin-bottom: 4px; }
+
+body.instructions code {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.9em;
+}
+
+.notice {
+  background: rgba(255, 200, 0, 0.12);
+  border-left: 3px solid #ffd23f;
+  border-radius: 0 10px 10px 0;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.notice.red {
+  background: rgba(255, 60, 60, 0.12);
+  border-color: #ff5555;
+}
+
+.keymap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.keymap-table th {
+  background: rgba(255,255,255,0.08);
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.keymap-table td {
+  padding: 5px 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-family: monospace;
+  opacity: 0.85;
+}
