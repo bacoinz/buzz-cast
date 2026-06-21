@@ -129,6 +129,10 @@ Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
 | Remote tab shows "not found" | Click Install to download Cloudflare — or install it manually and restart BuzzCast. |
 | Remote QR never appears | Check that port 3000 is not blocked by a firewall or antivirus. |
 
+## WIP
+
+RPCS3 integration.
+
 ---
 
 Built with [Bun](https://bun.sh).
