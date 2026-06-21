@@ -1,6 +1,6 @@
 # BuzzCast
 
-Turn any phone into a **Buzz!** quiz controller for **PCSX2**. Players open a browser, pick a slot (1–8) and tap the buttons — just like the real plastic buzzers. Supports up to **8 players**.
+Turn any phone into a Buzz! quiz controller for PCSX2 — local or remote via Cloudflare Tunnel + Discord/Parsec streaming. Players open a browser, pick a slot (1–8) and tap the buttons — just like the real plastic buzzers. Supports up to **8 players**.
 
 BuzzCast runs on the host PC, serves a web app on the local network, and emulates a **keyboard**. PCSX2 can't tell the difference from a real keyboard — you just map each Buzz pad to the keys below.
 
