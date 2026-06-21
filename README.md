@@ -4,7 +4,7 @@ Turn any phone into a Buzz! quiz controller for PCSX2 — local or remote via Cl
 
 BuzzCast runs on the host PC, serves a web app on the local network, and emulates a **keyboard**. PCSX2 can't tell the difference from a real keyboard — you just map each Buzz pad to the keys below.
 
-<img width="524" height="300" alt="imagem" src="https://github.com/user-attachments/assets/e0903380-6361-4574-a71b-a85bf7dc6c76" /> <img width="199" height="300" alt="imagem" src="https://github.com/user-attachments/assets/ec173812-8fc7-45ef-a14b-ae9235709bf4" /> <img width="142" height="300" alt="imagem" src="https://github.com/user-attachments/assets/1cc24d16-a335-4153-baa7-f4b8474e7f6b" />
+<img width="437" height="250" alt="imagem" src="https://github.com/user-attachments/assets/e0903380-6361-4574-a71b-a85bf7dc6c76" /> <img width="165" height="250" alt="imagem" src="https://github.com/user-attachments/assets/ec173812-8fc7-45ef-a14b-ae9235709bf4" /> <img width="119" height="250" alt="imagem" src="https://github.com/user-attachments/assets/1cc24d16-a335-4153-baa7-f4b8474e7f6b" />
 
 
 
