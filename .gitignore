@@ -5,6 +5,9 @@ buzz-logo.ico
 _bundle.js
 _embed-icon.ps1
 *.tmp
-.bun-build
 *.bun-build
 .claude/
+
+# Images (embedded in the exe at build time; not needed in the repo)
+*.png
+*.svg
