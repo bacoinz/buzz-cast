@@ -1,6 +1,6 @@
 {
   "name": "buzz-controller",
-  "version": "1.0.0",
+  "version": "1.1",
   "description": "Comandos Buzz no telemovel via webapp local para PCSX2 (emulacao de teclado)",
   "main": "server.js",
   "scripts": {

@@ -38,7 +38,7 @@ Phone (browser) ──WebSocket──► BuzzCast on PC ──keyboard emulation
 
 ### Option A — Download the exe *(easiest)*
 
-Download `BuzzCast.exe` from [Releases](https://github.com/bacoinz/buzz-cast/releases), double-click it and a browser tab opens automatically.
+Download the latest `BuzzCast v<x.y>.exe` from [Releases](https://github.com/bacoinz/buzz-cast/releases), double-click it and a browser tab opens automatically.
 
 ### Option B — Run from source
 
@@ -60,7 +60,7 @@ Requires [Bun](https://bun.sh) installed:
 bun run build.js
 ```
 
-Outputs `BuzzCast.exe` (~95 MB standalone, no dependencies).
+Outputs `BuzzCast v<x.y>.exe` (version from `package.json`; ~95 MB standalone, no dependencies).
 
 ---
 

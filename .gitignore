@@ -1,5 +1,6 @@
 node_modules/
 BuzzCast.exe
+BuzzCast v*.exe
 cloudflared.exe
 buzz-logo.ico
 _bundle.js

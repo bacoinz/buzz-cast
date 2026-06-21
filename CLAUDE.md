@@ -3,7 +3,7 @@
 Virtual Buzz! quiz controllers on any phone for PCSX2. The app runs on the host PC, serves a web UI over the network, and emulates a keyboard so PCSX2 sees real keystrokes.
 
 GitHub: https://github.com/bacoinz/buzzcast  
-Distribution: `BuzzCast.exe` — standalone ~95 MB, no installs needed (Bun runtime embedded).
+Distribution: `BuzzCast v<x.y>.exe` (version from `package.json`, e.g. `BuzzCast v1.1.exe`) — standalone ~95 MB, no installs needed (Bun runtime embedded).
 
 ---
 
@@ -43,7 +43,7 @@ Phone (browser) ──WebSocket──► bun-server.js ──PowerShell SendKeys
 
 ```sh
 # Standalone exe (production)
-.\BuzzCast.exe                   # double-click; auto-opens /host in browser
+.\"BuzzCast v1.1.exe"            # double-click; auto-opens /host in browser
 
 # Bun dev mode
 bun run bun-server.js
@@ -52,7 +52,7 @@ bun run bun-server.js
 npm install && node server.js
 
 # Build exe (requires Bun installed + all images present on disk)
-bun run build.js                 # outputs BuzzCast.exe (~95 MB)
+bun run build.js                 # outputs "BuzzCast v<x.y>.exe" (~95 MB)
 ```
 
 ---
@@ -197,7 +197,7 @@ Host page polls `/api/tunnel-status` every **1500 ms** and drives a state machin
 3. **Patch ASSETS Map**: replace `Bun.file(new URL(...))` entries with `{body, type}` objects backed by embedded string/Buffer constants (`__S`)
 4. **Patch fetch handler**: `new Response(asset)` → `new Response(asset.body, {headers:{"Content-Type":asset.type}})`
 5. Write `_bundle.js`
-6. Run `bun build --compile _bundle.js --outfile BuzzCast.exe --icon buzz-logo.ico`
+6. Run `bun build --compile _bundle.js --outfile "BuzzCast v<x.y>.exe" --icon buzz-logo.ico` (name derived from `package.json` version)
 7. Delete `_bundle.js`
 8. **Embed icon via Win32 API**: write `_embed-icon.ps1` (uses `BeginUpdateResource` / `UpdateResource` / `EndUpdateResource`), run it via `powershell -File`, delete it
 
@@ -261,4 +261,4 @@ function getLanIp() {
 
 ## Gitignore summary
 
-Excluded: `node_modules/`, `BuzzCast.exe`, `cloudflared.exe`, `buzz-logo.ico`, `_bundle.js`, `_embed-icon.ps1`, `*.bun-build`, `.claude/`, `*.png`, `*.svg`
+Excluded: `node_modules/`, `BuzzCast.exe`, `BuzzCast v*.exe`, `cloudflared.exe`, `buzz-logo.ico`, `_bundle.js`, `_embed-icon.ps1`, `*.bun-build`, `.claude/`, `*.png`, `*.svg`

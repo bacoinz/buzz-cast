@@ -7,6 +7,10 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pub = path.join(__dirname, "public");
 
+// ── Output name follows "BuzzCast v<version>.exe" (version from package.json) ──
+const { version } = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"), "utf8"));
+const EXE_NAME = `BuzzCast v${version}.exe`;
+
 // ── Read static files ────────────────────────────────────────────────────────
 const indexHtml        = fs.readFileSync(path.join(pub, "index.html"),           "utf8");
 const controllerHtml   = fs.readFileSync(path.join(pub, "controller.html"),      "utf8");
@@ -76,14 +80,14 @@ fs.writeFileSync(bundlePath, src, "utf8");
 console.log("Generated _bundle.js");
 
 // 4. Compile
-console.log("Compiling BuzzCast.exe…");
-execSync("bun build --compile _bundle.js --outfile BuzzCast.exe --icon buzz-logo.ico", { stdio: "inherit", cwd: __dirname });
+console.log(`Compiling ${EXE_NAME}…`);
+execSync(`bun build --compile _bundle.js --outfile "${EXE_NAME}" --icon buzz-logo.ico`, { stdio: "inherit", cwd: __dirname });
 
 // 5. Cleanup
 fs.unlinkSync(bundlePath);
 
 // 6. Embed icon via Win32 UpdateResource (write PS1 to temp file to avoid here-string issues)
-const exePath = path.join(__dirname, "BuzzCast.exe");
+const exePath = path.join(__dirname, EXE_NAME);
 const icoPath = path.join(__dirname, "buzz-logo.ico");
 if (fs.existsSync(icoPath)) {
   console.log("Embedding icon…");
@@ -131,4 +135,4 @@ Write-Host "Icon embedded"
   fs.unlinkSync(ps1Path);
 }
 
-console.log("Done! BuzzCast.exe is ready.");
+console.log(`Done! ${EXE_NAME} is ready.`);
