@@ -79,15 +79,21 @@ All messages are JSON strings.
 | C → S | `join` | `{type, player: 1-8, name: string}` |
 | S → C | `join_result` | `{type, ok: true, player, name}` or `{type, ok: false, reason: "taken"\|"invalid slot"}` |
 | C → S | `press` | `{type, button: "buzzer"\|"blue"\|"orange"\|"green"\|"yellow"}` |
+| C → S | `ping` | `{type, t: epochMs}` — client RTT probe (every 2 s) |
+| S → C | `pong` | `{type, t}` — echoes the `t` back so client computes RTT |
+| C → S | `latency` | `{type, rtt: ms}` — client reports measured RTT so server can share it |
 | C → S | `leave` | `{type}` |
-| S → all | `slots` | `{type, taken: {1:bool,…,8:bool}, names: {1:string\|null,…}}` |
+| S → all | `slots` | `{type, taken: {1:bool,…}, names: {1:string\|null,…}, pings: {1:ms\|null,…}}` |
 
-`slots` is broadcast on: new connection, join, leave, disconnect.
+`slots` is broadcast on: new connection, join, leave, disconnect, latency update.
+
+The host page opens a **spectator** WebSocket (never sends `join`) to read `slots`/`pings` and render the live per-player latency panel.
 
 Server state:
 ```js
 const slots = {};       // player(1-8) → ws | null
 const names = {};       // player(1-8) → string | null
+const pings = {};       // player(1-8) → RTT ms | null
 const wsClients = new Set();
 ```
 
@@ -112,26 +118,32 @@ const wsClients = new Set();
 
 ## Keyboard emulation (bun-server.js)
 
-A persistent PowerShell process is spawned at startup with stdin piped:
+A persistent PowerShell process is spawned at startup (`PS_KEY_SCRIPT`) with stdin piped. It reads one line per keypress and injects it via the Win32 **`keybd_event`** API (key-down + key-up, fire-and-forget — no blocking, low latency):
 
 ```js
-const psProc = spawn("powershell", [
-  "-NoProfile", "-NonInteractive", "-Command",
-  "Add-Type -Assembly System.Windows.Forms; $r=[Console]::In; while(($l=$r.ReadLine()) -ne $null){if($l){[System.Windows.Forms.SendKeys]::SendWait($l)}}",
-], { stdio: ["pipe", "ignore", "ignore"], windowsHide: true });
+const PS_KEY_SCRIPT = `Add-Type -Name K -Namespace W -MemberDefinition '... VkKeyScan, MapVirtualKey, keybd_event ...';
+… while(ReadLine()) {
+  if line starts with '#' → raw VK in hex (e.g. "#08" = Backspace), send by scancode
+  else → VkKeyScan(char) → VK + shift state; replay Shift if the char needs it (layout-aware)
+}`;
 ```
 
 `tapKey(player, button)` → looks up `KEYMAP[player][button]` → maps via `SK` → writes `"q\n"` to stdin.
 
 ```js
 const SK = {
-  Q:"q", W:"w", …,                        // letters: lowercase string
-  Num0:"{NUMPAD0}", …, Num9:"{NUMPAD9}",  // numpad: SendKeys braces
-  Comma:",", Period:".", Slash:"/",
+  Q:"q", W:"w", …,                 // letters → lowercase char
+  "0":"0", …, "9":"9",             // digits → char
+  Comma:",", Period:".", Minus:"-",
+  Backspace:"#08",                 // "#" prefix = raw virtual-key code (hex)
 };
 ```
 
-**Why PowerShell instead of nut.js?** Bun cannot load native `.node` modules. PowerShell's `SendKeys` is reliable for game input and has no external deps.
+**Why `keybd_event` instead of `SendKeys`?** `SendKeys.Send` needs a WinForms message loop (fails silently in a console process) and `SendKeys.SendWait` blocks until each key is processed → cumulative lag under rapid multi-player input. `keybd_event` with scancodes is non-blocking, reliable for games, and layout-aware via `VkKeyScan`.
+
+**Why VK-escape (`#`) for Backspace?** All 26 letters + 10 digits are consumed by the 40 keys; player 8's remaining keys must be non-alphanumeric. Every punctuation char needs Shift on *some* layout, so player 8 yellow uses Backspace sent by raw VK (`0x08`) — a single, Shift-free key present on all keyboards/layouts.
+
+**Why PowerShell instead of nut.js?** Bun cannot load native `.node` modules. PowerShell has no external deps.
 
 **Requirement:** PCSX2 window must be in focus when a button is pressed.
 
@@ -146,9 +158,9 @@ const SK = {
 | 3 | Z | X | C | V | B |
 | 4 | Y | U | I | O | P |
 | 5 | H | J | K | L | N |
-| 6 | Num1 | Num2 | Num3 | Num4 | Num5 |
-| 7 | Num6 | Num7 | Num8 | Num9 | Num0 |
-| 8 | M | F | , | . | / |
+| 6 | 1 | 2 | 3 | 4 | 5 |
+| 7 | 6 | 7 | 8 | 9 | 0 |
+| 8 | M | - | , | . | Backspace |
 
 Avoids F1–F12, Tab, Space, Esc (PCSX2 hotkeys).
 

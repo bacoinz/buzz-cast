@@ -176,6 +176,16 @@ body.controller {
   color: #3ddc6d;
 }
 
+.ping {
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.6em;
+  margin-left: -4px;
+}
+
 .topbar-btn {
   flex-shrink: 0;
   color: #fff;
@@ -214,6 +224,15 @@ body.controller {
 .buzzer.active {
   transform: translateY(7px);
   box-shadow: 0 1px 0 #6e0a12, 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.buzzer.flash {
+  animation: buzzer-flash 0.18s ease-out;
+}
+
+@keyframes buzzer-flash {
+  0%   { background: radial-gradient(circle at 50% 35%, #ff6b6b, #d4243a 62%, #8e0d18 100%); }
+  100% { background: radial-gradient(circle at 50% 35%, #ff3b3b, #c1121f 65%, #8e0d18 100%); }
 }
 
 /* SVG emboss: preto com opacidade baixa sobre o vermelho = vermelho escuro */

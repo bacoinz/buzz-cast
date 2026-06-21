@@ -7,7 +7,7 @@ import { spawn, exec } from "child_process";
 import path from "path";
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const PLAYERS = 8;
 const KEYMAP = {
   1: { buzzer: "Q", blue: "W", orange: "E", green: "R", yellow: "T" },
@@ -15,9 +15,9 @@ const KEYMAP = {
   3: { buzzer: "Z", blue: "X", orange: "C", green: "V", yellow: "B" },
   4: { buzzer: "Y", blue: "U", orange: "I", green: "O", yellow: "P" },
   5: { buzzer: "H", blue: "J", orange: "K", green: "L", yellow: "N" },
-  6: { buzzer: "Num1", blue: "Num2", orange: "Num3", green: "Num4", yellow: "Num5" },
-  7: { buzzer: "Num6", blue: "Num7", orange: "Num8", green: "Num9", yellow: "Num0" },
-  8: { buzzer: "M", blue: "F", orange: "Comma", green: "Period", yellow: "Slash" },
+  6: { buzzer: "1", blue: "2", orange: "3", green: "4", yellow: "5" },
+  7: { buzzer: "6", blue: "7", orange: "8", green: "9", yellow: "0" },
+  8: { buzzer: "M", blue: "Minus", orange: "Comma", green: "Period", yellow: "Backspace" },
 };
 
 // ── Static assets (embedded at compile time via Bun.file + new URL) ───────────
@@ -34,22 +34,50 @@ const ASSETS = new Map([
 ]);
 
 // ── PowerShell keyboard (replaces nut-js) ─────────────────────────────────────
-// SendKeys format mapping for each KEYMAP key name
+// Each KEYMAP key name maps to the literal character sent over stdin.
+// The PowerShell helper converts that char → virtual-key/scancode and injects it
+// via the Win32 keybd_event API (fire-and-forget, low latency, reliable for games).
 const SK = {
   Q:"q", W:"w", E:"e", R:"r", T:"t",
   A:"a", S:"s", D:"d", F:"f", G:"g",
   Z:"z", X:"x", C:"c", V:"v", B:"b",
   Y:"y", U:"u", I:"i", O:"o", P:"p",
   H:"h", J:"j", K:"k", L:"l", N:"n", M:"m",
-  Num0:"{NUMPAD0}", Num1:"{NUMPAD1}", Num2:"{NUMPAD2}", Num3:"{NUMPAD3}",
-  Num4:"{NUMPAD4}", Num5:"{NUMPAD5}", Num6:"{NUMPAD6}", Num7:"{NUMPAD7}",
-  Num8:"{NUMPAD8}", Num9:"{NUMPAD9}",
-  Comma:",", Period:".", Slash:"/",
+  "0":"0", "1":"1", "2":"2", "3":"3", "4":"4",
+  "5":"5", "6":"6", "7":"7", "8":"8", "9":"9",
+  Comma:",", Period:".", Minus:"-",
+  // Named keys sent by raw virtual-key code (prefix "#", hex). Layout-independent.
+  Backspace:"#08",
 };
 
+const PS_KEY_SCRIPT = `Add-Type -Name K -Namespace W -MemberDefinition '[DllImport("user32.dll")]public static extern short VkKeyScan(char ch);[DllImport("user32.dll")]public static extern uint MapVirtualKey(uint c,uint t);[DllImport("user32.dll")]public static extern void keybd_event(byte vk,byte sc,uint f,System.UIntPtr e);';
+$Z=[System.UIntPtr]::Zero;
+$shSc=[byte]([W.K]::MapVirtualKey(0x10,0));
+$r=[Console]::In;
+while(($l=$r.ReadLine()) -ne $null){
+  if($l){
+    if($l[0] -eq '#'){
+      $vk=[Convert]::ToInt32($l.Substring(1),16);
+      $sc=[byte]([W.K]::MapVirtualKey([uint32]$vk,0));
+      [W.K]::keybd_event([byte]$vk,$sc,0x8,$Z);
+      [W.K]::keybd_event([byte]$vk,$sc,0xA,$Z);
+    } else {
+      $res=[W.K]::VkKeyScan($l[0]);
+      $vk=$res -band 0xff;
+      if($vk -ne 0xff){
+        $sh=($res -band 0x100) -ne 0;
+        $sc=[byte]([W.K]::MapVirtualKey([uint32]$vk,0));
+        if($sh){[W.K]::keybd_event(0x10,$shSc,0x8,$Z)}
+        [W.K]::keybd_event([byte]$vk,$sc,0x8,$Z);
+        [W.K]::keybd_event([byte]$vk,$sc,0xA,$Z);
+        if($sh){[W.K]::keybd_event(0x10,$shSc,0xA,$Z)}
+      }
+    }
+  }
+}`;
+
 const psProc = spawn("powershell", [
-  "-NoProfile", "-NonInteractive", "-Command",
-  "Add-Type -Assembly System.Windows.Forms; $r=[Console]::In; while(($l=$r.ReadLine()) -ne $null){if($l){[System.Windows.Forms.SendKeys]::SendWait($l)}}",
+  "-NoProfile", "-NonInteractive", "-Command", PS_KEY_SCRIPT,
 ], { stdio: ["pipe", "ignore", "ignore"], windowsHide: true });
 psProc.on("error", (e) => console.error("[ps]", e.message));
 
@@ -179,10 +207,21 @@ async function hostPage() {
     .qr-wrap svg { display: block; width: clamp(180px, 30vw, 380px); height: auto; }
     .remote-state { color: #ccc; font-size: clamp(0.8rem, 1.3vw, 1rem); text-align: center; padding: 16px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
     .url { font-size: clamp(0.9rem, 1.8vw, 1.4rem); font-weight: 700; letter-spacing: 0.5px; color: #ffd23f; text-align: center; word-break: break-all; max-width: clamp(180px, 32vw, 420px); }
+    .players-ping { position: fixed; left: 20px; bottom: 18px; display: none; flex-direction: column; gap: 4px; font-size: clamp(0.65rem, 1vw, 0.8rem); z-index: 90; }
+    .players-ping.show { display: flex; }
+    .pp-row { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.06); border-radius: 8px; padding: 3px 9px; }
+    .pp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .pp-name { color: rgba(255,255,255,0.7); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pp-ms { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; opacity: 0.85; }
+    .host-footer { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; opacity: 0.35; font-size: clamp(0.7rem, 1.1vw, 0.85rem); z-index: 80; }
+    .host-footer a { color: #fff; text-decoration: none; }
+    .host-footer a:hover { opacity: 0.7; }
   </style>
 </head>
 <body>
   <button class="close-btn" onclick="shutdown()" title="Shut down BuzzCast">✕</button>
+  <div class="players-ping" id="players-ping"></div>
+  <div class="host-footer"><a href="https://github.com/bacoinz/buzz-cast" target="_blank">GitHub</a></div>
   <div class="columns">
     <div class="left">
       <img class="logo" src="/buzz-logo.png" alt="BuzzCast"/>
@@ -194,6 +233,7 @@ async function hostPage() {
         <div class="step"><div class="step-num">4</div><div class="step-text" id="s4"></div></div>
       </div>
       <div class="lang-row">
+        <a href="/instructions.html" target="_blank" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.75);font-size:clamp(0.7rem,1.1vw,0.85rem);font-weight:600;padding:5px 12px;text-decoration:none;transition:background 0.15s;white-space:nowrap" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">📋 PCSX2 Instructions</a>
         <button class="flag-btn" data-lang="en" onclick="setLang('en')" title="English">🇬🇧</button>
         <button class="flag-btn" data-lang="pt" onclick="setLang('pt')" title="Português">🇵🇹</button>
       </div>
@@ -284,6 +324,32 @@ async function hostPage() {
       setTimeout(pollRemote, 1500);
     }
     async function shutdown() { await fetch("/api/shutdown", { method: "POST" }).catch(()=>{}); window.close(); }
+
+    // ── Live player latency (spectator WebSocket) ──
+    const ppBox = document.getElementById("players-ping");
+    function renderPings(taken, names, pings) {
+      const rows = [];
+      for (let p = 1; p <= 8; p++) {
+        if (!taken || !taken[p]) continue;
+        const ms = pings && pings[p] != null ? pings[p] : null;
+        const color = ms == null ? "#888" : ms < 80 ? "#3ddc6d" : ms < 200 ? "#ffd23f" : "#ff5555";
+        const nm = (names && names[p]) ? names[p] : ("P" + p);
+        const msTxt = ms == null ? "…" : ms + "ms";
+        rows.push('<div class="pp-row"><span class="pp-dot" style="background:'+color+'"></span><span class="pp-name">'+nm.replace(/</g,"&lt;")+'</span><span class="pp-ms" style="color:'+color+'">'+msTxt+'</span></div>');
+      }
+      ppBox.innerHTML = rows.join("");
+      ppBox.classList.toggle("show", rows.length > 0);
+    }
+    function connectSpectator() {
+      const proto = location.protocol === "https:" ? "wss:" : "ws:";
+      const sws = new WebSocket(proto + "//" + location.host);
+      sws.onmessage = (ev) => {
+        try { const m = JSON.parse(ev.data); if (m.type === "slots") renderPings(m.taken, m.names, m.pings); } catch {}
+      };
+      sws.onclose = () => setTimeout(connectSpectator, 2000);
+    }
+    connectSpectator();
+
     applyHost(); showLoading(); pollRemote();
   </script>
 </body>
@@ -293,7 +359,8 @@ async function hostPage() {
 // ── WebSocket state ───────────────────────────────────────────────────────────
 const slots = {};
 const names = {};
-for (let p = 1; p <= PLAYERS; p++) { slots[p] = null; names[p] = null; }
+const pings = {};
+for (let p = 1; p <= PLAYERS; p++) { slots[p] = null; names[p] = null; pings[p] = null; }
 const wsClients = new Set();
 
 function takenMap() {
@@ -303,7 +370,7 @@ function takenMap() {
 }
 
 function broadcastSlots() {
-  const msg = JSON.stringify({ type: "slots", taken: takenMap(), names });
+  const msg = JSON.stringify({ type: "slots", taken: takenMap(), names, pings });
   for (const ws of wsClients) ws.send(msg);
 }
 
@@ -365,7 +432,7 @@ Bun.serve({
   websocket: {
     open(ws) {
       wsClients.add(ws);
-      ws.send(JSON.stringify({ type: "slots", taken: takenMap(), names }));
+      ws.send(JSON.stringify({ type: "slots", taken: takenMap(), names, pings }));
     },
     message(ws, raw) {
       let data;
@@ -381,7 +448,7 @@ Bun.serve({
         }
         if (ws.data.player && ws.data.player !== p) {
           const old = ws.data.player;
-          if (slots[old] === ws) { slots[old] = null; names[old] = null; }
+          if (slots[old] === ws) { slots[old] = null; names[old] = null; pings[old] = null; }
         }
         ws.data.player = p;
         slots[p] = ws;
@@ -390,15 +457,24 @@ Bun.serve({
         broadcastSlots();
       } else if (data.type === "press") {
         if (ws.data.player) tapKey(ws.data.player, data.button);
+      } else if (data.type === "ping") {
+        ws.send(JSON.stringify({ type: "pong", t: data.t }));
+      } else if (data.type === "latency") {
+        const p = ws.data.player;
+        const rtt = Number(data.rtt);
+        if (p && slots[p] === ws && Number.isFinite(rtt)) {
+          pings[p] = Math.max(0, Math.min(9999, Math.round(rtt)));
+          broadcastSlots();
+        }
       } else if (data.type === "leave") {
         const p = ws.data.player;
-        if (p && slots[p] === ws) { slots[p] = null; names[p] = null; ws.data.player = null; broadcastSlots(); }
+        if (p && slots[p] === ws) { slots[p] = null; names[p] = null; pings[p] = null; ws.data.player = null; broadcastSlots(); }
       }
     },
     close(ws) {
       wsClients.delete(ws);
       const p = ws.data.player;
-      if (p && slots[p] === ws) { slots[p] = null; names[p] = null; broadcastSlots(); }
+      if (p && slots[p] === ws) { slots[p] = null; names[p] = null; pings[p] = null; broadcastSlots(); }
     },
   },
 });

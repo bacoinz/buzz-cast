@@ -16,6 +16,12 @@ BuzzCast runs on the host PC, serves a web app on the local network, and emulate
 Phone (browser) ──WebSocket──► BuzzCast on PC ──keyboard emulation──► PCSX2
 ```
 
+- **Up to 8 players** on their own phones — no apps, no pairing.
+- **Local or remote** play (LAN QR code or Cloudflare Tunnel for online).
+- **Low-latency keyboard injection** via the Win32 `keybd_event` API (layout-aware).
+- **Live latency indicator** per player, on both the controller and the host screen.
+- **Auto-reconnect** with exponential backoff if WiFi drops.
+
 ---
 
 ## Requirements
@@ -100,11 +106,11 @@ Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
 | 3 | Z | X | C | V | B |
 | 4 | Y | U | I | O | P |
 | 5 | H | J | K | L | N |
-| 6 | Num1 | Num2 | Num3 | Num4 | Num5 |
-| 7 | Num6 | Num7 | Num8 | Num9 | Num0 |
-| 8 | M | F | , | . | / |
+| 6 | 1 | 2 | 3 | 4 | 5 |
+| 7 | 6 | 7 | 8 | 9 | 0 |
+| 8 | M | - | , | . | Backspace |
 
-`Num1`–`Num0` = **numpad** keys.
+> Players 6 & 7 use the **top-row number keys** (not the numpad), and player 8's yellow is **Backspace** — chosen so every key works on all keyboard layouts without modifiers.
 
 ---
 

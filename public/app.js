@@ -3,12 +3,15 @@ const player = Number(params.get("player"));
 
 const label = document.getElementById("label");
 const conn = document.getElementById("conn");
+const pingEl = document.getElementById("ping");
 const changeNameBtn = document.getElementById("change-name");
 
 applyI18n();
 
 let ws;
 let ready = false;
+let backoff = 1000;
+let pingTimer = null;
 
 function getName() {
   return localStorage.getItem("buzz_name") || "";
@@ -32,6 +35,29 @@ function updateLabel() {
 function setConn(ok) {
   conn.classList.toggle("on", ok);
   conn.title = ok ? "Connected" : "Disconnected";
+  if (!ok) pingEl.textContent = "";
+}
+
+function setPing(rtt) {
+  pingEl.textContent = rtt + "ms";
+  pingEl.style.color = rtt < 80 ? "rgba(120,230,140,0.6)"
+                     : rtt < 200 ? "rgba(255,210,80,0.6)"
+                                 : "rgba(255,100,100,0.7)";
+}
+
+function startPinging() {
+  stopPinging();
+  const send = () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "ping", t: Date.now() }));
+    }
+  };
+  send();
+  pingTimer = setInterval(send, 2000);
+}
+
+function stopPinging() {
+  if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
 }
 
 function connect() {
@@ -39,7 +65,9 @@ function connect() {
   ws = new WebSocket(wsProto + "//" + location.host);
   ws.onopen = () => {
     setConn(true);
+    backoff = 1000;
     ws.send(JSON.stringify({ type: "join", player, name: getName() }));
+    startPinging();
   };
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
@@ -50,12 +78,18 @@ function connect() {
         alert(t("join_failed", msg.reason));
         location.href = "index.html";
       }
+    } else if (msg.type === "pong") {
+      const rtt = Date.now() - msg.t;
+      setPing(rtt);
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "latency", rtt }));
     }
   };
   ws.onclose = () => {
     setConn(false);
     ready = false;
-    setTimeout(connect, 1000);
+    stopPinging();
+    setTimeout(connect, backoff);
+    backoff = Math.min(backoff * 2, 10000);
   };
 }
 
@@ -71,11 +105,18 @@ changeNameBtn.addEventListener("click", () => {
   }
 });
 
+// Buzzer feedback: visual flash on press.
+function buzzerFeedback(el) {
+  el.classList.remove("flash");
+  void el.offsetWidth; // restart animation
+  el.classList.add("flash");
+}
+
 function press(button, el) {
   if (!ready || !ws || ws.readyState !== WebSocket.OPEN) return;
   ws.send(JSON.stringify({ type: "press", button }));
-  if (navigator.vibrate) navigator.vibrate(30);
   el.classList.add("active");
+  if (button === "buzzer") buzzerFeedback(el);
 }
 
 function release(el) {
