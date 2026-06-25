@@ -4,14 +4,17 @@ import path from "path";
 import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const pub = path.join(__dirname, "public");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(scriptDir, "..");          // repo root (scripts/ is one level down)
+const pub = path.join(root, "public");
+const srcDir = path.join(root, "src");
+const assetsDir = path.join(root, "assets");
 
 // ── Build target (version from package.json) ──────────────────────────────────
 // Native build by default; override with BUILD_TARGET=windows|linux|macos to
 // cross-compile from one machine. Icon embedding (Win32 UpdateResource) only runs
 // for the Windows target AND only when building on Windows.
-const { version } = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"), "utf8"));
+const { version } = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 
 const TARGETS = {
   windows: { flag: "bun-windows-x64", out: `BuzzCast v${version}.exe`,            icon: true  },
@@ -36,20 +39,20 @@ const logoPngB64       = fs.readFileSync(path.join(pub, "buzz-logo.png")).toStri
 const logoSvg          = fs.readFileSync(path.join(pub, "buzz-logo-black.svg"),  "utf8");
 
 // ── Read bun-server.js source and patch it ───────────────────────────────────
-let src = fs.readFileSync(path.join(__dirname, "bun-server.js"), "utf8");
+let src = fs.readFileSync(path.join(srcDir, "bun-server.js"), "utf8");
 
 // 1. Replace the ASSETS Map (Bun.file calls → embedded content)
 const assetsBlock = `// ── Static assets (embedded at compile time via Bun.file + new URL) ───────────
 const ASSETS = new Map([
-  ["/",                  Bun.file(new URL("./public/index.html",        import.meta.url))],
-  ["/index.html",        Bun.file(new URL("./public/index.html",        import.meta.url))],
-  ["/controller.html",   Bun.file(new URL("./public/controller.html",   import.meta.url))],
-  ["/instructions.html", Bun.file(new URL("./public/instructions.html", import.meta.url))],
-  ["/style.css",         Bun.file(new URL("./public/style.css",         import.meta.url))],
-  ["/app.js",            Bun.file(new URL("./public/app.js",            import.meta.url))],
-  ["/lang.js",           Bun.file(new URL("./public/lang.js",           import.meta.url))],
-  ["/buzz-logo.png",     Bun.file(new URL("./public/buzz-logo.png",     import.meta.url))],
-  ["/buzz-logo-black.svg", Bun.file(new URL("./public/buzz-logo-black.svg", import.meta.url))],
+  ["/",                  Bun.file(new URL("../public/index.html",        import.meta.url))],
+  ["/index.html",        Bun.file(new URL("../public/index.html",        import.meta.url))],
+  ["/controller.html",   Bun.file(new URL("../public/controller.html",   import.meta.url))],
+  ["/instructions.html", Bun.file(new URL("../public/instructions.html", import.meta.url))],
+  ["/style.css",         Bun.file(new URL("../public/style.css",         import.meta.url))],
+  ["/app.js",            Bun.file(new URL("../public/app.js",            import.meta.url))],
+  ["/lang.js",           Bun.file(new URL("../public/lang.js",           import.meta.url))],
+  ["/buzz-logo.png",     Bun.file(new URL("../public/buzz-logo.png",     import.meta.url))],
+  ["/buzz-logo-black.svg", Bun.file(new URL("../public/buzz-logo-black.svg", import.meta.url))],
 ]);`;
 
 const assetsReplacement = `// ── Embedded static files ────────────────────────────────────────────────────
@@ -88,27 +91,27 @@ src = src.replace(
   "    const asset = ASSETS.get(pathname);\n    if (asset) return new Response(asset.body, {headers:{\"Content-Type\":asset.type}});"
 );
 
-// 3. Write _bundle.js
-const bundlePath = path.join(__dirname, "_bundle.js");
+// 3. Write _bundle.js next to the source so its ./keyboard + ./platform imports resolve
+const bundlePath = path.join(srcDir, "_bundle.js");
 fs.writeFileSync(bundlePath, src, "utf8");
-console.log("Generated _bundle.js");
+console.log("Generated src/_bundle.js");
 
-// 4. Compile (per target)
+// 4. Compile (per target) — outputs land in the repo root (cwd = root)
 const onWindows = process.platform === "win32";
-const icoPath = path.join(__dirname, "buzz-logo.ico");
+const icoPath = path.join(assetsDir, "buzz-logo.ico");
 const useIcon = TARGET.icon && onWindows && fs.existsSync(icoPath);
-const iconFlag = useIcon ? " --icon buzz-logo.ico" : "";
+const iconFlag = useIcon ? ` --icon "${icoPath}"` : "";
 console.log(`Compiling ${EXE_NAME} (target ${TARGET.flag})…`);
-execSync(`bun build --compile --target=${TARGET.flag} _bundle.js --outfile "${EXE_NAME}"${iconFlag}`, { stdio: "inherit", cwd: __dirname });
+execSync(`bun build --compile --target=${TARGET.flag} src/_bundle.js --outfile "${EXE_NAME}"${iconFlag}`, { stdio: "inherit", cwd: root });
 
 // 5. Cleanup
 fs.unlinkSync(bundlePath);
 
 // 6. Embed icon via Win32 UpdateResource (Windows target, built on Windows only)
-const exePath = path.join(__dirname, EXE_NAME);
+const exePath = path.join(root, EXE_NAME);
 if (useIcon) {
   console.log("Embedding icon…");
-  const ps1Path = path.join(__dirname, "_embed-icon.ps1");
+  const ps1Path = path.join(root, "_embed-icon.ps1");
   fs.writeFileSync(ps1Path, `
 Add-Type -TypeDefinition @'
 using System; using System.IO; using System.Runtime.InteropServices;
@@ -148,7 +151,7 @@ public class IconEmbedder {
 Write-Host "Icon embedded"
 `, "utf8");
   execSync(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${ps1Path}"`,
-    { stdio: "inherit", cwd: __dirname });
+    { stdio: "inherit", cwd: root });
   fs.unlinkSync(ps1Path);
 }
 

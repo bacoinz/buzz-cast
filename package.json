@@ -2,9 +2,12 @@
   "name": "buzz-controller",
   "version": "1.2",
   "description": "Comandos Buzz no telemovel via webapp local para PCSX2 (emulacao de teclado)",
-  "main": "server.js",
+  "main": "legacy/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "bun run src/bun-server.js",
+    "dev": "bun run src/bun-server.js",
+    "build": "bun run scripts/build.js",
+    "start:node": "node legacy/server.js"
   },
   "license": "MIT",
   "dependencies": {

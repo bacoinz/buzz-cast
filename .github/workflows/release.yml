@@ -4,10 +4,9 @@ name: Build & Release
 # binaries to a GitHub Release. Triggered by pushing a tag like `v1.2`, or run
 # manually from the Actions tab.
 #
-# NOTE: the build embeds the brand images from public/ (buzz-logo.png,
-# buzz-logo-black.svg) and controller-ico.png. These are .gitignored by default —
-# they must be present in the repo for CI to build (commit them, or remove the
-# matching lines from .gitignore).
+# NOTE: the build embeds brand images (public/buzz-logo.png, public/buzz-logo-black.svg)
+# and assets/buzz-logo.ico. These match *.png/*.svg .gitignore rules but are kept via
+# negation entries — they must stay committed for CI to build.
 
 on:
   push:
@@ -28,7 +27,7 @@ jobs:
         run: bun install --ignore-scripts
       - name: Build
         shell: bash
-        run: bun run build.js
+        run: bun run scripts/build.js
       - uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -43,7 +42,7 @@ jobs:
       - name: Install deps
         run: bun install --ignore-scripts
       - name: Build
-        run: bun run build.js
+        run: bun run scripts/build.js
       - name: Package AppImage
         run: |
           VER=$(bun -e 'console.log(require("./package.json").version)')
@@ -85,7 +84,7 @@ jobs:
       - name: Install deps
         run: bun install --ignore-scripts
       - name: Build
-        run: bun run build.js
+        run: bun run scripts/build.js
       - name: Package .app
         run: |
           VER=$(bun -e 'console.log(require("./package.json").version)')

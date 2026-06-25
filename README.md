@@ -52,14 +52,16 @@ Grab the latest build from [Releases](https://github.com/bacoinz/buzzcast/releas
 
 ### Option B — Run from source
 
+With [Bun](https://bun.sh) (recommended):
 ```sh
-npm install
-node server.js
+bun install
+bun run src/bun-server.js     # or: bun run dev
 ```
 
-Or with Bun:
+Legacy Node.js fallback:
 ```sh
-bun run bun-server.js
+npm install
+node legacy/server.js
 ```
 
 ### Build it yourself
@@ -68,15 +70,15 @@ Requires [Bun](https://bun.sh) installed. Builds for your current OS by default:
 
 ```sh
 bun install
-bun run build.js
+bun run build      # → scripts/build.js
 ```
 
 Cross-compile a specific target from any OS:
 
 ```sh
-BUILD_TARGET=windows bun run build.js
-BUILD_TARGET=linux   bun run build.js
-BUILD_TARGET=macos   bun run build.js
+BUILD_TARGET=windows bun run build
+BUILD_TARGET=linux   bun run build
+BUILD_TARGET=macos   bun run build
 ```
 
 Outputs a standalone binary (~95 MB, version from `package.json`). All three are also built automatically by CI on each tagged release.

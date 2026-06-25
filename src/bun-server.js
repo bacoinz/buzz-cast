@@ -24,15 +24,15 @@ const KEYMAP = {
 
 // ── Static assets (embedded at compile time via Bun.file + new URL) ───────────
 const ASSETS = new Map([
-  ["/",                  Bun.file(new URL("./public/index.html",        import.meta.url))],
-  ["/index.html",        Bun.file(new URL("./public/index.html",        import.meta.url))],
-  ["/controller.html",   Bun.file(new URL("./public/controller.html",   import.meta.url))],
-  ["/instructions.html", Bun.file(new URL("./public/instructions.html", import.meta.url))],
-  ["/style.css",         Bun.file(new URL("./public/style.css",         import.meta.url))],
-  ["/app.js",            Bun.file(new URL("./public/app.js",            import.meta.url))],
-  ["/lang.js",           Bun.file(new URL("./public/lang.js",           import.meta.url))],
-  ["/buzz-logo.png",     Bun.file(new URL("./public/buzz-logo.png",     import.meta.url))],
-  ["/buzz-logo-black.svg", Bun.file(new URL("./public/buzz-logo-black.svg", import.meta.url))],
+  ["/",                  Bun.file(new URL("../public/index.html",        import.meta.url))],
+  ["/index.html",        Bun.file(new URL("../public/index.html",        import.meta.url))],
+  ["/controller.html",   Bun.file(new URL("../public/controller.html",   import.meta.url))],
+  ["/instructions.html", Bun.file(new URL("../public/instructions.html", import.meta.url))],
+  ["/style.css",         Bun.file(new URL("../public/style.css",         import.meta.url))],
+  ["/app.js",            Bun.file(new URL("../public/app.js",            import.meta.url))],
+  ["/lang.js",           Bun.file(new URL("../public/lang.js",           import.meta.url))],
+  ["/buzz-logo.png",     Bun.file(new URL("../public/buzz-logo.png",     import.meta.url))],
+  ["/buzz-logo-black.svg", Bun.file(new URL("../public/buzz-logo-black.svg", import.meta.url))],
 ]);
 
 // ── Keyboard emulation (per-platform backend) ─────────────────────────────────

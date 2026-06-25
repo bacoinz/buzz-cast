@@ -1,4 +1,6 @@
 node_modules/
+
+# Build outputs
 BuzzCast.exe
 BuzzCast v*.exe
 BuzzCast-v*-linux-x86_64
@@ -6,16 +8,21 @@ BuzzCast-v*-macos
 BuzzCast-v*-x86_64.AppImage
 BuzzCast-v*-macos.zip
 BuzzCast.app/
-cloudflared
-cloudflared.exe
-cloudflared*.tgz
-buzz-logo.ico
-_bundle.js
+src/_bundle.js
 _embed-icon.ps1
 AppDir/
 appimagetool
+
+# Runtime / downloaded
+cloudflared
+cloudflared.exe
+cloudflared*.tgz
+keymap.json
 *.tmp
 *.bun-build
+
+# Claude / local tooling (not for GitHub)
+CLAUDE.md
 .claude/
 
 # Images: ignore by default, but keep the brand assets the build/CI needs.
@@ -23,6 +30,5 @@ appimagetool
 *.svg
 !public/buzz-logo.png
 !public/buzz-logo-black.svg
-!controller-ico.png
-!buzz-logo.ico
-keymap.json
+!assets/controller-ico.png
+!assets/buzz-logo.ico
