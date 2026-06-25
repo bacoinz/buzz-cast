@@ -4,6 +4,8 @@ Turn any phone into a Buzz! quiz controller for PCSX2 — local or remote via Cl
 
 BuzzCast runs on the host PC, serves a web app on the local network, and emulates a **keyboard**. PCSX2 can't tell the difference from a real keyboard — you just map each Buzz pad to the keys below.
 
+**Available for Windows, macOS and Linux** — a single standalone download per OS, no installs needed.
+
 <img width="437" height="250" alt="imagem" src="https://github.com/user-attachments/assets/e0903380-6361-4574-a71b-a85bf7dc6c76" /> <img width="165" height="250" alt="imagem" src="https://github.com/user-attachments/assets/ec173812-8fc7-45ef-a14b-ae9235709bf4" /> <img width="119" height="250" alt="imagem" src="https://github.com/user-attachments/assets/1cc24d16-a335-4153-baa7-f4b8474e7f6b" />
 
 
@@ -18,7 +20,8 @@ Phone (browser) ──WebSocket──► BuzzCast on PC ──keyboard emulation
 
 - **Up to 8 players** on their own phones — no apps, no pairing.
 - **Local or remote** play (LAN QR code or Cloudflare Tunnel for online).
-- **Low-latency keyboard injection** via the Win32 `keybd_event` API (layout-aware).
+- **Low-latency keyboard injection**, layout-aware, native per OS (Windows `keybd_event`, Linux X11 `XTest`, macOS CoreGraphics).
+- **Customisable keys** — change any pad's key from the host's **Keybinds** menu; defaults below.
 - **Live latency indicator** per player, on both the controller and the host screen.
 - **Auto-reconnect** with exponential backoff if WiFi drops.
 
@@ -26,19 +29,26 @@ Phone (browser) ──WebSocket──► BuzzCast on PC ──keyboard emulation
 
 ## Requirements
 
-- **Windows PC** running PCSX2 with a Buzz! game.
+- A **Windows, macOS or Linux PC** running PCSX2 with a Buzz! game.
 - Phones on the **same WiFi** as the PC (for local play).
 - No installs needed on phones — just a browser.
+- Linux: an **X11** session (Wayland not yet supported) with `libxtst6` installed. macOS: grant **Accessibility** permission when asked.
 
-> **No Node.js or Bun required.** `BuzzCast.exe` is a standalone executable that includes its own runtime. Just double-click and play.
+> **No Node.js or Bun required.** The BuzzCast download is a standalone executable that includes its own runtime. Just run it and play.
 
 ---
 
 ## Getting started
 
-### Option A — Download the exe *(easiest)*
+### Option A — Download for your OS *(easiest)*
 
-Download the latest `BuzzCast v<x.y>.exe` from [Releases](https://github.com/bacoinz/buzz-cast/releases), double-click it and a browser tab opens automatically.
+Grab the latest build from [Releases](https://github.com/bacoinz/buzzcast/releases) and run it — a browser tab opens automatically:
+
+| OS | Download |
+|---|---|
+| **Windows** | `BuzzCast v<x.y>.exe` — double-click |
+| **Linux** | `BuzzCast-v<x.y>-x86_64.AppImage` (`chmod +x`, then run) or the raw `BuzzCast-v<x.y>-linux-x86_64` binary |
+| **macOS** | `BuzzCast-v<x.y>-macos.zip` — unzip, then right-click → **Open** (unsigned app) |
 
 ### Option B — Run from source
 
@@ -52,21 +62,30 @@ Or with Bun:
 bun run bun-server.js
 ```
 
-### Build the exe yourself
+### Build it yourself
 
-Requires [Bun](https://bun.sh) installed:
+Requires [Bun](https://bun.sh) installed. Builds for your current OS by default:
 
 ```sh
+bun install
 bun run build.js
 ```
 
-Outputs `BuzzCast v<x.y>.exe` (version from `package.json`; ~95 MB standalone, no dependencies).
+Cross-compile a specific target from any OS:
+
+```sh
+BUILD_TARGET=windows bun run build.js
+BUILD_TARGET=linux   bun run build.js
+BUILD_TARGET=macos   bun run build.js
+```
+
+Outputs a standalone binary (~95 MB, version from `package.json`). All three are also built automatically by CI on each tagged release.
 
 ---
 
 ## Playing locally (same WiFi)
 
-1. Run `BuzzCast.exe` — the **Host** page opens automatically.
+1. Run BuzzCast — the **Host** page opens automatically.
 2. Players scan the **Local QR code** with their phone camera, or type the URL shown.
 3. Each player picks a free slot and enters their name.
 4. The controller screen appears — ready to play!
@@ -97,7 +116,7 @@ This works great with any screen-sharing or streaming app:
 
 ## PCSX2 key map
 
-Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
+**Default** keys — 8 players × 5 buttons = 40 unique keys. You can change any of them from the **Keybinds** menu on the host page (and test each button live); whatever you set is what PCSX2 should be mapped to.
 
 | Player | Buzzer (●) | Blue | Orange | Green | Yellow |
 |-------:|:----------:|:----:|:------:|:-----:|:------:|
@@ -119,8 +138,10 @@ Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
 1. Open **Settings → Controllers**.
 2. For **4 players**: click **USB Port 1**, choose **Buzz! Controller**, map players 1–4.
 3. For **8 players**: also click **USB Port 2**, choose **Buzz! Controller**, map players 5–8.
-4. For each pad, map **Buzzer / Blue / Orange / Green / Yellow** to the keys in the table above.
+4. For each pad, map **Buzzer / Blue / Orange / Green / Yellow** to the keys shown in the host's **Keybinds** menu (defaults in the table above).
 5. Save and start the game with the PCSX2 window in focus.
+
+> The host page also has a **PCSX2 Instructions** popup with these same steps.
 
 > ⚠️ **Buzz!: The Music Quiz** (the first game in the series) only supports 4 players.
 
@@ -131,13 +152,23 @@ Defined in [`config.js`](config.js). 8 players × 5 buttons = 40 unique keys.
 | Problem | Fix |
 |---|---|
 | Buttons do nothing in-game | PCSX2 window is not in focus, or key mapping doesn't match the table. |
-| Phone can't open the page | Make sure the phone is on the same WiFi and Windows Firewall allows port 3000. |
+| Phone can't open the page | Make sure the phone is on the same WiFi and your firewall allows port 3000. |
+| Buttons do nothing (Linux) | Needs an **X11** session (not Wayland) with `libxtst6` installed. |
+| Buttons do nothing (macOS) | Grant **Accessibility** permission: System Settings → Privacy & Security → Accessibility. |
 | Remote tab shows "not found" | Click Install to download Cloudflare — or install it manually and restart BuzzCast. |
 | Remote QR never appears | Check that port 3000 is not blocked by a firewall or antivirus. |
 
 ## WIP
 
 RPCS3 integration.
+
+---
+
+## ⚠️ macOS & Linux builds are untested — feedback needed!
+
+BuzzCast was developed and tested on **Windows**. The **macOS** and **Linux** builds compile and ship, but the keyboard injection on those platforms hasn't been verified on real hardware yet. If you try them, please [open an issue](https://github.com/bacoinz/buzzcast/issues) with your OS/version and whether the buttons worked — it's a huge help. 🙏
+
+Known caveats: Linux is **X11-only** (Wayland not supported) and needs `libxtst6`; macOS needs **Accessibility** permission and the app is **unsigned** (right-click → Open).
 
 ---
 
