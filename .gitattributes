@@ -1,0 +1,7 @@
+# Force LF in the working tree on all platforms so build.js string-matching
+# (it patches bun-server.js by exact text) works identically on CI runners.
+* text=auto eol=lf
+
+# Binary assets — never touch line endings.
+*.png binary
+*.ico binary

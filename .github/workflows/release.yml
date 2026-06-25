@@ -24,6 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --ignore-scripts
       - name: Build
         shell: bash
         run: bun run build.js
@@ -38,6 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --ignore-scripts
       - name: Build
         run: bun run build.js
       - name: Package AppImage
@@ -78,6 +82,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - name: Install deps
+        run: bun install --ignore-scripts
       - name: Build
         run: bun run build.js
       - name: Package .app
