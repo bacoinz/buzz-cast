@@ -93,9 +93,24 @@ function connect() {
   };
 }
 
+// ── Screen Wake Lock: keep the phone awake while the controller is open ──
+let wakeLock = null;
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
+  } catch { /* denied / unsupported / not visible — ignore */ }
+}
+// Browsers drop the lock when the tab is hidden; re-acquire when it returns.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && !wakeLock) requestWakeLock();
+});
+
 askName(false);
 updateLabel();
 connect();
+requestWakeLock();
 
 changeNameBtn.addEventListener("click", () => {
   askName(true);

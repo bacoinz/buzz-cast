@@ -7,9 +7,12 @@ import { spawn } from "child_process";
 import path from "path";
 import { initKeyboard, tapToken } from "./keyboard/index.js";
 import { openBrowser, CF as CFINFO, makeExecutable, extractTgz } from "./platform.js";
+import pkg from "../package.json";   // bundled at compile time → version embedded
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT) || 3000;
+const VERSION = pkg.version;
+const REPO = "bacoinz/buzzcast";
 const PLAYERS = 8;
 const KEYMAP = {
   1: { buzzer: "Q", blue: "W", orange: "E", green: "R", yellow: "T" },
@@ -166,6 +169,40 @@ function downloadFile(url, dest, onProgress) {
   });
 }
 
+// ── Auto-update check (GitHub Releases) ───────────────────────────────────────
+let updateInfo = { current: VERSION, latest: null, updateAvailable: false, url: `https://github.com/${REPO}/releases`, checkedAt: 0 };
+
+function isNewer(a, b) {   // true if a > b ("1.3" > "1.2")
+  const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+
+function checkForUpdate() {
+  return new Promise((resolve) => {
+    https.get(`https://api.github.com/repos/${REPO}/releases/latest`,
+      { headers: { "User-Agent": "BuzzCast", "Accept": "application/vnd.github+json" } }, (res) => {
+        if (res.statusCode !== 200) { res.resume(); return resolve(updateInfo); }
+        let body = "";
+        res.on("data", (c) => body += c);
+        res.on("end", () => {
+          try {
+            const tag = (JSON.parse(body).tag_name || "").replace(/^v/i, "");
+            if (tag) updateInfo = {
+              current: VERSION, latest: tag, updateAvailable: isNewer(tag, VERSION),
+              url: `https://github.com/${REPO}/releases/latest`, checkedAt: Date.now(),
+            };
+          } catch {}
+          resolve(updateInfo);
+        });
+      }).on("error", () => resolve(updateInfo));
+  });
+}
+checkForUpdate();   // fire once at startup
+
 // ── QR helper ─────────────────────────────────────────────────────────────────
 function genQr(url) {
   return QRCode.toString(url, { type: "svg", width: 420, margin: 2, color: { dark: "#120821", light: "#ffffff" } });
@@ -225,6 +262,13 @@ async function hostPage() {
     .host-footer { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; opacity: 0.35; font-size: clamp(0.7rem, 1.1vw, 0.85rem); z-index: 80; }
     .host-footer a { color: #fff; text-decoration: none; }
     .host-footer a:hover { opacity: 0.7; }
+    /* Update banner */
+    .update-banner { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); display: none; align-items: center; gap: 12px; background: linear-gradient(180deg,#6a2cc9,#4a1a99); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 9px 16px; font-size: clamp(0.75rem,1.2vw,0.95rem); font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.45); z-index: 150; }
+    .update-banner.show { display: flex; }
+    .update-banner a { background: #ffd23f; color: #2a1147; border-radius: 8px; padding: 4px 12px; text-decoration: none; font-weight: 800; white-space: nowrap; }
+    .update-banner a:hover { opacity: 0.9; }
+    .update-banner .ub-x { cursor: pointer; opacity: 0.7; font-weight: 700; }
+    .update-banner .ub-x:hover { opacity: 1; }
     /* Pill buttons (Keybinds + Instructions) */
     .pill-btn { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: rgba(255,255,255,0.8); font-size: clamp(0.7rem,1.1vw,0.85rem); font-weight: 600; padding: 5px 12px; text-decoration: none; cursor: pointer; transition: background 0.15s; white-space: nowrap; font-family: inherit; }
     .pill-btn:hover { background: rgba(255,255,255,0.16); }
@@ -265,6 +309,11 @@ async function hostPage() {
 </head>
 <body>
   <button class="close-btn" onclick="shutdown()" title="Shut down BuzzCast">✕</button>
+  <div class="update-banner" id="update-banner">
+    <span id="update-text"></span>
+    <a id="update-link" href="https://github.com/bacoinz/buzzcast/releases/latest" target="_blank"></a>
+    <span class="ub-x" onclick="document.getElementById('update-banner').classList.remove('show')">✕</span>
+  </div>
   <div class="players-ping" id="players-ping"></div>
   <div class="host-footer"><a href="https://github.com/bacoinz/buzz-cast" target="_blank">GitHub</a></div>
   <div class="columns">
@@ -330,8 +379,8 @@ async function hostPage() {
 
   <script>
     const HOST_T = {
-      en: { title:"How to join", s1:"Connect to the <strong>same WiFi</strong> as this PC.", s2:"Open your phone camera and scan the <strong>QR code →</strong>", s3:"Pick a free slot and enter your name.", s4:"Press the buttons and <strong>play!</strong>", tab_local:"Local", tab_remote:"Remote", tunnel_starting:"⏳ Starting tunnel…", not_found:"Cloudflared wasn't detected in your system, would you like to install? You can remove it later.", install_btn:"Install (≈35 MB)", installing:"Downloading cloudflared…", install_error:"Install failed:", retry_btn:"Retry", kb_btn:"Keybinds", instr_btn:"PCSX2 Instructions", kb_title:"Keybinds", kb_hint:"Click a key field and press the key you want · click a button to test it", kb_save:"Save", kb_back:"Back", kb_reset:"Reset defaults", instr_title:"PCSX2 Setup", instr_close:"Close" },
-      pt: { title:"Como entrar", s1:"Liga-te à <strong>mesma rede WiFi</strong> que este PC.", s2:"Aponta a câmara do telemóvel ao <strong>código QR →</strong>", s3:"Escolhe o teu lugar e escreve o teu nome.", s4:"Carrega nos botões e <strong>joga!</strong>", tab_local:"Local", tab_remote:"Remoto", tunnel_starting:"⏳ A iniciar túnel…", not_found:"O Cloudflared não foi detetado no sistema. Deseja instalar? Pode removê-lo mais tarde.", install_btn:"Instalar (≈35 MB)", installing:"A transferir cloudflared…", install_error:"Erro na instalação:", retry_btn:"Tentar novamente", kb_btn:"Teclas", instr_btn:"Instruções PCSX2", kb_title:"Configurar Teclas", kb_hint:"Clica num campo e prime a tecla que queres · clica num botão para testar", kb_save:"Guardar", kb_back:"Voltar", kb_reset:"Repor predefinições", instr_title:"Configurar PCSX2", instr_close:"Fechar" }
+      en: { title:"How to join", s1:"Connect to the <strong>same WiFi</strong> as this PC.", s2:"Open your phone camera and scan the <strong>QR code →</strong>", s3:"Pick a free slot and enter your name.", s4:"Press the buttons and <strong>play!</strong>", tab_local:"Local", tab_remote:"Remote", tunnel_starting:"⏳ Starting tunnel…", not_found:"Cloudflared wasn't detected in your system, would you like to install? You can remove it later.", install_btn:"Install (≈35 MB)", installing:"Downloading cloudflared…", install_error:"Install failed:", retry_btn:"Retry", kb_btn:"Keybinds", instr_btn:"PCSX2 Instructions", kb_title:"Keybinds", kb_hint:"Click a key field and press the key you want · click a button to test it", kb_save:"Save", kb_back:"Back", kb_reset:"Reset defaults", instr_title:"PCSX2 Setup", instr_close:"Close", update_text:v=>"New version "+v+" available!", update_btn:"Download" },
+      pt: { title:"Como entrar", s1:"Liga-te à <strong>mesma rede WiFi</strong> que este PC.", s2:"Aponta a câmara do telemóvel ao <strong>código QR →</strong>", s3:"Escolhe o teu lugar e escreve o teu nome.", s4:"Carrega nos botões e <strong>joga!</strong>", tab_local:"Local", tab_remote:"Remoto", tunnel_starting:"⏳ A iniciar túnel…", not_found:"O Cloudflared não foi detetado no sistema. Deseja instalar? Pode removê-lo mais tarde.", install_btn:"Instalar (≈35 MB)", installing:"A transferir cloudflared…", install_error:"Erro na instalação:", retry_btn:"Tentar novamente", kb_btn:"Teclas", instr_btn:"Instruções PCSX2", kb_title:"Configurar Teclas", kb_hint:"Clica num campo e prime a tecla que queres · clica num botão para testar", kb_save:"Guardar", kb_back:"Voltar", kb_reset:"Repor predefinições", instr_title:"Configurar PCSX2", instr_close:"Fechar", update_text:v=>"Nova versão "+v+" disponível!", update_btn:"Transferir" }
     };
     function getLang() { return localStorage.getItem("buzz_lang") || "en"; }
     function setLang(l) { localStorage.setItem("buzz_lang", l); location.reload(); }
@@ -531,7 +580,20 @@ async function hostPage() {
     }
     connectSpectator();
 
-    applyHost(); showLoading(); pollRemote();
+    async function checkUpdate() {
+      try {
+        const u = await fetch("/api/update-check").then(r => r.json());
+        if (!u.updateAvailable) return;
+        const tf = tx("update_text");
+        document.getElementById("update-text").textContent = typeof tf === "function" ? tf(u.latest) : tf;
+        const link = document.getElementById("update-link");
+        link.textContent = tx("update_btn");
+        if (u.url) link.href = u.url;
+        document.getElementById("update-banner").classList.add("show");
+      } catch {}
+    }
+
+    applyHost(); showLoading(); pollRemote(); checkUpdate();
   </script>
 </body>
 </html>`;
@@ -610,6 +672,12 @@ Bun.serve({
         fs.writeFileSync(KEYMAP_FILE, JSON.stringify(keymap, null, 2));
         return Response.json({ ok: true });
       } catch (err) { return Response.json({ ok: false, error: err.message }); }
+    }
+
+    if (pathname === "/api/update-check") {
+      // Re-check at most once an hour; otherwise serve the cached result.
+      if (Date.now() - updateInfo.checkedAt > 3600_000) await checkForUpdate();
+      return Response.json(updateInfo);
     }
 
     if (pathname === "/api/shutdown" && req.method === "POST") {
